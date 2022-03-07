@@ -10,6 +10,8 @@ local_timezone = 'America/Los_Angeles'
 input_path = './input'
 app_log_path = './logs'
 app_log_filename = 'app.log'
+refresh_per_second = 1
+main_loop_throttle = 0.1
 
 ip_addresses = [
     '192.168.1.1',

@@ -95,9 +95,9 @@ def main(config):
     layout = make_layout()
 
     logger.info("Doing it live")
-    with Live(layout, refresh_per_second=10, screen=True):
+    with Live(layout, refresh_per_second=config.get('refresh_per_second'), screen=True):
         while not should_terminate:
-            sleep(0.1)
+            sleep(config.get('main_loop_throttle'))
             layout["body"].update(make_data_table(table_data))
 
     logger.info("Shutting down scheduler")
