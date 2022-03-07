@@ -1,3 +1,4 @@
+# pyinstaller --onefile main.py -n pm --icon="images\casne-logo-icon_120x120.ico"
 import logging
 import re
 import subprocess
@@ -36,12 +37,18 @@ def ping(ip, table_data):
         args = ['ping', '-n', '1', '-w', '1000', str(ip)]
         process = subprocess.run(args, capture_output=True, text=True)
         if process.returncode == 0:
-            search = re.search(r'Minimum = (.*)ms, Maximum = (.*)ms, Average = (.*)ms', process.stdout, re.M | re.I)
-            ping_rtt = search.group(3)
-            table_data[ip] = {
-                "RTT": ping_rtt,
-                "Status": "Online"
-            }
+            try:
+                search = re.search(r'Minimum = (.*)ms, Maximum = (.*)ms, Average = (.*)ms', process.stdout, re.M | re.I)
+                ping_rtt = search.group(3)
+                table_data[ip] = {
+                    "RTT": ping_rtt,
+                    "Status": "Online"
+                }
+            except Exception:
+                table_data[ip] = {
+                    "RTT": "N/A",
+                    "Status": "Offline"
+                }
         else:
             table_data[ip] = {
                 "RTT": "N/A",
@@ -70,50 +77,7 @@ def main(config):
     scheduler = BackgroundScheduler()
     configure_scheduler(scheduler, config)
 
-    #TODO Parse a csv file to get IP addresses
-    ip_addresses = [
-        '192.168.1.1',
-        '192.168.1.3',
-        '192.168.1.81',
-        '192.168.1.82',
-        '192.168.1.83',
-        '192.168.1.91',
-        '192.168.1.92',
-        '192.168.1.93',
-        '192.168.1.94',
-        '192.168.1.95',
-        '192.168.1.96',
-        '192.168.1.97',
-        '192.168.1.98',
-        '192.168.1.99',
-        'www.yahoo.com',
-        'www.google.com',
-        '8.8.8.8',
-        '8.8.4.4',
-        '192.168.1.104',
-        '192.168.1.105',
-        '192.168.1.106',
-        '192.168.1.107',
-        '192.168.1.108',
-        '192.168.1.109',
-        '192.168.1.110',
-        '192.168.1.111',
-        '192.168.1.112',
-        '192.168.1.113',
-        '192.168.1.114',
-        '192.168.1.115',
-        '192.168.1.116',
-        '192.168.1.117',
-        '192.168.1.118',
-        '192.168.1.119',
-        '192.168.1.120',
-        '192.168.1.121',
-        '192.168.1.122',
-        '192.168.1.123',
-        '192.168.1.124',
-        '192.168.1.125',
-        '192.168.1.126'
-    ]
+    ip_addresses = config.get("ip_addresses")
 
     logger.info("Adding IP addresses to ping")
     table_data = {}
