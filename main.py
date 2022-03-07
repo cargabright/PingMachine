@@ -32,21 +32,36 @@ def signal_handler(signal_received, frame):
 signal(SIGINT, signal_handler)
 
 def ping(ip, table_data):
-    # TODO Modify the args and regex search pattern so it works with Windows and MacOS
-    args = ['ping', '-c', '1', '-W', '1', str(ip)]
-    process = subprocess.run(args, capture_output=True, text=True)
-    if process.returncode == 0:
-        search = re.search(r'round-trip min/avg/max/stddev = (.*)/(.*)/(.*)/(.*) ms', process.stdout, re.M | re.I)
-        ping_rtt = search.group(2)
-        table_data[ip] = {
-            "RTT": ping_rtt,
-            "Status": "Online"
-        }
+    if sys.platform.startswith("win32"):
+        args = ['ping', '-n', '1', '-w', '1000', str(ip)]
+        process = subprocess.run(args, capture_output=True, text=True)
+        if process.returncode == 0:
+            search = re.search(r'Minimum = (.*)ms, Maximum = (.*)ms, Average = (.*)ms', process.stdout, re.M | re.I)
+            ping_rtt = search.group(3)
+            table_data[ip] = {
+                "RTT": ping_rtt,
+                "Status": "Online"
+            }
+        else:
+            table_data[ip] = {
+                "RTT": "N/A",
+                "Status": "Offline"
+            }
     else:
-        table_data[ip] = {
-            "RTT": "N/A",
-            "Status": "Offline"
-        }
+        args = ['ping', '-c', '1', '-W', '1', str(ip)]
+        process = subprocess.run(args, capture_output=True, text=True)
+        if process.returncode == 0:
+            search = re.search(r'round-trip min/avg/max/stddev = (.*)/(.*)/(.*)/(.*) ms', process.stdout, re.M | re.I)
+            ping_rtt = search.group(2)
+            table_data[ip] = {
+                "RTT": ping_rtt,
+                "Status": "Online"
+            }
+        else:
+            table_data[ip] = {
+                "RTT": "N/A",
+                "Status": "Offline"
+            }
 
 
 def main(config):
@@ -97,11 +112,7 @@ def main(config):
         '192.168.1.123',
         '192.168.1.124',
         '192.168.1.125',
-        '192.168.1.126',
-        '192.168.1.127',
-        '192.168.1.128',
-        '192.168.1.129',
-        '192.168.1.130'
+        '192.168.1.126'
     ]
 
     logger.info("Adding IP addresses to ping")
